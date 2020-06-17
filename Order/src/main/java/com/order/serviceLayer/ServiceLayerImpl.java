@@ -29,22 +29,25 @@ public class ServiceLayerImpl implements ServiceLayer {
 	private RestTemplateBuilder restbuild;
 
 	public String orderPlaced(OrderHeader orderHead) {
-
+		/*
+		 * RestTemplate resttem = restbuild.build(); InstanceInfo insinfo =
+		 * eurekaclient.getNextServerFromEureka("product-service", false); String
+		 * baseurl = insinfo.getHomePageUrl();
+		 * 
+		 * String fetchProductbaseurl = baseurl + "/product/getoneProduct/" + "/" +
+		 * orderHead.getProduct().getId(); Product product =
+		 * resttem.getForObject(fetchProductbaseurl, Product.class);
+		 * orderHead.setProduct(product);
+		 * 
+		 * InstanceInfo insinfoCust =
+		 * eurekaclient.getNextServerFromEureka("customer-service", false); String
+		 * baseurlCust = insinfoCust.getHomePageUrl(); String fetchCustomerbaseurl =
+		 * baseurlCust + "/customer/getonecutomer/" + "/" +
+		 * orderHead.getCustomer().getCustomerID(); Customer customer =
+		 * resttem.getForObject(fetchCustomerbaseurl, Customer.class);
+		 * orderHead.setCustomer(customer);
+		 */
 		RestTemplate resttem = restbuild.build();
-		InstanceInfo insinfo = eurekaclient.getNextServerFromEureka("product-service", false);
-		String baseurl = insinfo.getHomePageUrl();
-
-		String fetchProductbaseurl = baseurl + "/product/getoneProduct/" + "/" + orderHead.getProduct().getId();
-		Product product = resttem.getForObject(fetchProductbaseurl, Product.class);
-		orderHead.setProduct(product);
-
-		InstanceInfo insinfoCust = eurekaclient.getNextServerFromEureka("customer-service", false);
-		String baseurlCust = insinfoCust.getHomePageUrl();
-		String fetchCustomerbaseurl = baseurlCust + "/customer/getonecutomer/" + "/"
-				+ orderHead.getCustomer().getCustomerID();
-		Customer customer = resttem.getForObject(fetchCustomerbaseurl, Customer.class);
-		orderHead.setCustomer(customer);
-
 		InstanceInfo insinfoInv = eurekaclient.getNextServerFromEureka("inventory-service", false);
 		String baseurlInv = insinfoInv.getHomePageUrl();
 		String fetchQuantitybaseurl = baseurlInv + "/quantityFetch/" + orderHead.getProduct().getId();
