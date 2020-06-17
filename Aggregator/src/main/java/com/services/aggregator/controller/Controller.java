@@ -124,8 +124,8 @@ public class Controller {
 			//Product product = new Product();
 			//Customer customer = new Customer();
 
-			product.setId(Productid);
-			customer.setCustomerID(custid);
+			//product.setId(productCheck);
+			//customer.setCustomerID(custid);
 
 			order.setProduct(productCheck);
 			order.setCustomer(customerCheck);
