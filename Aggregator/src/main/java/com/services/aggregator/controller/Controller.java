@@ -121,14 +121,14 @@ public class Controller {
 		if (productCheck != null && customerCheck != null) {
 			OrderHeader order = new OrderHeader();
 
-			Product product = new Product();
-			Customer customer = new Customer();
+			//Product product = new Product();
+			//Customer customer = new Customer();
 
 			product.setId(Productid);
 			customer.setCustomerID(custid);
 
-			order.setProduct(product);
-			order.setCustomer(customer);
+			order.setProduct(productCheck);
+			order.setCustomer(customerCheck);
 			order.setQuantity(quantity);
 
 			RestTemplate restTemplate = restTemplateBuilder.build();
