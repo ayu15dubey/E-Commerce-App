@@ -28,7 +28,6 @@ import com.order.repo.OrderRepo;
 import com.order.serviceLayer.ServiceLayer;
 
 @RestController
-@RequestMapping("/order")
 public class OrderController {
 
 	@Autowired

@@ -1,27 +1,17 @@
 package com.services.aggregator.controller;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
-
-import javax.ws.rs.GET;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -52,10 +42,10 @@ public class Controller {
 	public Product viewProductById(@PathVariable("id") Long id) {
 		RestTemplate restTemplate = restTemplateBuilder.build();
 
-		InstanceInfo insinfo = eurekaClient.getNextServerFromEureka("product-service", false);
+		InstanceInfo insinfo = eurekaClient.getNextServerFromEureka("zuul-gateway", false);
 		String baseurl = insinfo.getHomePageUrl();
 
-		String fetchProductbaseurl = baseurl + "/product/getoneProduct/" + "/" + id;
+		String fetchProductbaseurl = baseurl + "api/product/getoneProduct/"+ id;
 		Product product = restTemplate.getForObject(fetchProductbaseurl, Product.class);
 		return product;
 	}
@@ -66,10 +56,10 @@ public class Controller {
 
 		RestTemplate restTemplate = restTemplateBuilder.build();
 
-		InstanceInfo insinfo = eurekaClient.getNextServerFromEureka("product-service", false);
+		InstanceInfo insinfo = eurekaClient.getNextServerFromEureka("zuul-gateway", false);
 		String baseurl = insinfo.getHomePageUrl();
 
-		String fetchProductbaseurl = baseurl + "/product/getproductbyname/" + name;
+		String fetchProductbaseurl = baseurl + "api/product/getproductbyname/" + name;
 		List<Product> product = restTemplate.getForObject(fetchProductbaseurl, List.class);
 
 		return product;
@@ -81,10 +71,10 @@ public class Controller {
 
 		RestTemplate restTemplate = restTemplateBuilder.build();
 
-		InstanceInfo insinfo = eurekaClient.getNextServerFromEureka("customer-service", false);
+		InstanceInfo insinfo = eurekaClient.getNextServerFromEureka("zuul-gateway", false);
 		String baseurl = insinfo.getHomePageUrl();
 
-		String fetchProductbaseurl = baseurl + "/customer/addcustomer";
+		String fetchProductbaseurl = baseurl + "api/customer/addcustomer";
 		ResponseEntity<Customer> customerObj = restTemplate.postForEntity(fetchProductbaseurl, customer,
 				Customer.class);
 
@@ -100,10 +90,10 @@ public class Controller {
 
 		RestTemplate restTemplate = restTemplateBuilder.build();
 
-		InstanceInfo insinfo = eurekaClient.getNextServerFromEureka("customer-service", false);
+		InstanceInfo insinfo = eurekaClient.getNextServerFromEureka("zuul-gateway", false);
 		String baseurl = insinfo.getHomePageUrl();
 
-		String fetchProductbaseurl = baseurl + "/customer/getonecutomer/" + CustId;
+		String fetchProductbaseurl = baseurl + "api/customer/getonecustomer/" + CustId;
 
 		Customer customerObj = restTemplate.getForObject(fetchProductbaseurl, Customer.class);
 
@@ -117,26 +107,22 @@ public class Controller {
 
 		Product productCheck = controller.viewProductById(Productid);
 		Customer customerCheck = controller.viewMyDetails(custid);
-
+System.out.println(productCheck);
+System.out.println(customerCheck);
 		if (productCheck != null && customerCheck != null) {
+			System.out.println("inside aggr");
 			OrderHeader order = new OrderHeader();
+order.setProduct(productCheck);
+order.setCustomer(customerCheck);
+order.setQuantity(quantity);
 
-			//Product product = new Product();
-			//Customer customer = new Customer();
-
-			//product.setId(productCheck);
-			//customer.setCustomerID(custid);
-
-			order.setProduct(productCheck);
-			order.setCustomer(customerCheck);
-			order.setQuantity(quantity);
 
 			RestTemplate restTemplate = restTemplateBuilder.build();
 
-			InstanceInfo insinfo = eurekaClient.getNextServerFromEureka("order-service", false);
+			InstanceInfo insinfo = eurekaClient.getNextServerFromEureka("zuul-gateway", false);
 			String baseurl = insinfo.getHomePageUrl();
 
-			String fetchProductbaseurl = baseurl + "/order/placeOrder";
+			String fetchProductbaseurl = baseurl + "api/order/placeOrder";
 			ResponseEntity<String> customerObj = restTemplate.postForEntity(fetchProductbaseurl, order, String.class);
 
 			return customerObj;
@@ -161,27 +147,27 @@ public class Controller {
 	public String updateMyDetails(@PathVariable("custid") Long custId, @RequestBody Customer customer) {
 		RestTemplate restTemplate = restTemplateBuilder.build();
 
-		InstanceInfo insinfo = eurekaClient.getNextServerFromEureka("customer-service", false);
+		InstanceInfo insinfo = eurekaClient.getNextServerFromEureka("zuul-gateway", false);
 		String baseurl = insinfo.getHomePageUrl();
 
-		String fetchProductbaseurl = baseurl + "/customer/updateonecustomer/" + custId;
+		String fetchProductbaseurl = baseurl + "api/customer/updateonecustomer/" + custId;
 		String result = restTemplate.patchForObject(fetchProductbaseurl, customer, String.class);
 
 		return result;
 
 	}
 
-	@DeleteMapping("/deleteorder")
+	@DeleteMapping("/deleteorder/{id}")
 	public String deleteOrder(@PathVariable("id") int id) {
 
 		RestTemplate restTemplate = restTemplateBuilder.build();
 
-		InstanceInfo insinfo = eurekaClient.getNextServerFromEureka("order-service", false);
+		InstanceInfo insinfo = eurekaClient.getNextServerFromEureka("zuul-gateway", false);
 		String baseurl = insinfo.getHomePageUrl();
 
-		String fetchProductbaseurl = baseurl + "/order/removeOrder/" + id;
-		String result = restTemplate.getForObject(fetchProductbaseurl, String.class);
-		return result;
+		String fetchProductbaseurl = baseurl + "api/order/removeOrder/" + id;
+		restTemplate.delete(fetchProductbaseurl);
+		return "Deleted";
 
 	}
 

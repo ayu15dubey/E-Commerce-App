@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.microservices.customer.model.Customer;
 import com.microservices.customer.service.CustomerService;
 @RestController
-@RequestMapping("/customer")
 public class CustomerController {
 
 	@Autowired
@@ -33,7 +32,7 @@ public class CustomerController {
 		return service.getAllCustomer();
 	}
 	
-	@GetMapping("/getonecutomer/{id}")
+	@GetMapping("/getonecustomer/{id}")
 	public Optional<Customer> getOneCustomer(@PathVariable("id") Long id) {
 		return service.findOneCustomer(id);
 	}
