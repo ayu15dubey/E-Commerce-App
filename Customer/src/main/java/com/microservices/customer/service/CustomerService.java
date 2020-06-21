@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.microservices.customer.dao.CustomerDao;
@@ -14,6 +15,15 @@ import com.microservices.customer.model.Customer;
 @Service
 public class CustomerService {
 
+	@Value("${customer.updated}")
+	String detailsUpdated;
+	
+	@Value("${customer.deleted}")
+	String deleted;
+	
+	@Value("${customer.idnotexits}")
+	String idDetails;
+	
 	@Autowired
 	CustomerDao repository;
 
@@ -70,7 +80,7 @@ public class CustomerService {
 		// details = customerdetails;
 
 		final Customer updateDetails = repository.save(details);
-		return "Details updated";
+		return detailsUpdated;
 
 	}
 
@@ -78,9 +88,9 @@ public class CustomerService {
 
 		if (repository.existsById(id)) {
 			repository.deleteById(id);
-			return "deleted";
+			return deleted;
 		} else {
-			return "Id doesnt exits";
+			return idDetails;
 		}
 	}
 }

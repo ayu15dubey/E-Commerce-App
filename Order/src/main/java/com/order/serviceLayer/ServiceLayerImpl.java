@@ -93,7 +93,11 @@ public class ServiceLayerImpl implements ServiceLayer {
 	}
 
 	public OrderHeader orderFetched(int orderId) {
+		if(orderRepo.existsById(orderId))
 		return orderRepo.findById(orderId).get();
+		
+		else
+			return null;
 	}
 
 	public List<OrderHeader> allOrderFetched() {

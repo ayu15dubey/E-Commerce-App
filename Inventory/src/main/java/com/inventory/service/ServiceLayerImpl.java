@@ -5,6 +5,7 @@ import java.util.List;
 import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 
@@ -13,6 +14,10 @@ import com.inventory.repo.InventoryRepo;
 
 @Service
 public class ServiceLayerImpl implements ServiceLayer {
+	
+	@Value("${inventory.updated}")
+	String detailsUpdated;
+	
 	@Autowired
 	private InventoryRepo inventoryRepo;
 
@@ -42,7 +47,7 @@ public class ServiceLayerImpl implements ServiceLayer {
 		int newQuantity = oldQuantity - quantity;
 		inventoryEnt.setQuantity(newQuantity);
 		inventoryRepo.save(inventoryEnt);
-		return "Updated Quantity";
+		return detailsUpdated;
 	}
 
 	public void inventoryRemoved(Integer productId) {

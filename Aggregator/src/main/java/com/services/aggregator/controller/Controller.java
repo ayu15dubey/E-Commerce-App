@@ -38,6 +38,12 @@ public class Controller {
 
 	Boolean hasCustomerBecome = false;
 
+	/**
+	 * To view the particular products by id.
+	 * 
+	 * @param id
+	 * @return
+	 */
 	@GetMapping("/searchProductbyid/{id}")
 	public Product viewProductById(@PathVariable("id") Long id) {
 		RestTemplate restTemplate = restTemplateBuilder.build();
@@ -45,11 +51,19 @@ public class Controller {
 		InstanceInfo insinfo = eurekaClient.getNextServerFromEureka("zuul-gateway", false);
 		String baseurl = insinfo.getHomePageUrl();
 
-		String fetchProductbaseurl = baseurl + "api/product/getoneProduct/"+ id;
+		String fetchProductbaseurl = baseurl + "api/product/getoneProduct/" + id;
 		Product product = restTemplate.getForObject(fetchProductbaseurl, Product.class);
 		return product;
 	}
 
+	/**
+	 * To view the particular products by name.
+	 * 
+	 * @param name
+	 * @return
+	 * @throws IOException
+	 * @throws ClassNotFoundException
+	 */
 	@GetMapping("/searchProductbyname/{name}")
 	public List<Product> viewProductsByName(@PathVariable("name") String name)
 			throws IOException, ClassNotFoundException {
@@ -65,6 +79,14 @@ public class Controller {
 		return product;
 	}
 
+	/**
+	 * To become customer for placing the order
+	 * 
+	 * @param customer
+	 * @return
+	 * @throws IOException
+	 * @throws ClassNotFoundException
+	 */
 	@PostMapping("/becomeCustomer")
 	public ResponseEntity<Customer> becomeCustomer(@RequestBody Customer customer)
 			throws IOException, ClassNotFoundException {
@@ -85,6 +107,12 @@ public class Controller {
 		return customerObj;
 	}
 
+	/**
+	 * To view customer details.
+	 * 
+	 * @param CustId
+	 * @return
+	 */
 	@GetMapping("/viewmydetails/{custid}")
 	public Customer viewMyDetails(@PathVariable("custid") Long CustId) {
 
@@ -101,21 +129,26 @@ public class Controller {
 
 	}
 
+	/**
+	 * For placing the order.
+	 * 
+	 * @param Productid
+	 * @param custid
+	 * @param quantity
+	 * @return
+	 */
 	@PostMapping("/placeOrder/{Productid}/{custid}/{quantity}")
 	public ResponseEntity<String> placeOrder(@PathVariable("Productid") Long Productid,
 			@PathVariable("custid") Long custid, @PathVariable("quantity") int quantity) {
 
 		Product productCheck = controller.viewProductById(Productid);
 		Customer customerCheck = controller.viewMyDetails(custid);
-System.out.println(productCheck);
-System.out.println(customerCheck);
-		if (productCheck != null && customerCheck != null) {
-			System.out.println("inside aggr");
-			OrderHeader order = new OrderHeader();
-order.setProduct(productCheck);
-order.setCustomer(customerCheck);
-order.setQuantity(quantity);
 
+		if (productCheck != null && customerCheck != null) {
+			OrderHeader order = new OrderHeader();
+			order.setProduct(productCheck);
+			order.setCustomer(customerCheck);
+			order.setQuantity(quantity);
 
 			RestTemplate restTemplate = restTemplateBuilder.build();
 
@@ -123,9 +156,9 @@ order.setQuantity(quantity);
 			String baseurl = insinfo.getHomePageUrl();
 
 			String fetchProductbaseurl = baseurl + "api/order/placeOrder";
-			ResponseEntity<String> customerObj = restTemplate.postForEntity(fetchProductbaseurl, order, String.class);
+			ResponseEntity<String> result = restTemplate.postForEntity(fetchProductbaseurl, order, String.class);
 
-			return customerObj;
+			return result;
 
 		}
 
@@ -136,13 +169,41 @@ order.setQuantity(quantity);
 
 		} else {
 			String result = "No Customer exits with this Customer id \r\n --Please become customer for any order--"
-					+ "\r\n Url : http://localhost:8080/enduser/becomeCustomer";
+					+ "\r\n Url : http://localhost:9090/api/aggregator/enduser/becomeCustomer";
 
 			return new ResponseEntity<String>(result, HttpStatus.CREATED);
 		}
 
 	}
 
+	/**
+	 * To view the particular order details.
+	 * 
+	 * @param id
+	 * @return
+	 */
+	@GetMapping("/getmyorder/{orderid}")
+	public OrderHeader getMyOrder(@PathVariable("orderid") int id) {
+
+		RestTemplate restTemplate = restTemplateBuilder.build();
+
+		InstanceInfo insinfo = eurekaClient.getNextServerFromEureka("zuul-gateway", false);
+		String baseurl = insinfo.getHomePageUrl();
+
+		String fetchProductbaseurl = baseurl + "api/order/fetchOrder/" + id;
+		OrderHeader order = restTemplate.getForObject(fetchProductbaseurl, OrderHeader.class);
+		;
+
+		return order;
+	}
+
+	/**
+	 * TO update the details.
+	 * 
+	 * @param custId
+	 * @param customer
+	 * @return
+	 */
 	@PatchMapping("/updatemydetails/{custid}")
 	public String updateMyDetails(@PathVariable("custid") Long custId, @RequestBody Customer customer) {
 		RestTemplate restTemplate = restTemplateBuilder.build();
@@ -157,17 +218,31 @@ order.setQuantity(quantity);
 
 	}
 
+	/**
+	 * Deleting the placed order.
+	 * 
+	 * @param id
+	 * @return
+	 */
 	@DeleteMapping("/deleteorder/{id}")
 	public String deleteOrder(@PathVariable("id") int id) {
 
-		RestTemplate restTemplate = restTemplateBuilder.build();
+		OrderHeader checkOrder = controller.getMyOrder(id);
 
-		InstanceInfo insinfo = eurekaClient.getNextServerFromEureka("zuul-gateway", false);
-		String baseurl = insinfo.getHomePageUrl();
+		if (checkOrder != null) {
+			RestTemplate restTemplate = restTemplateBuilder.build();
 
-		String fetchProductbaseurl = baseurl + "api/order/removeOrder/" + id;
-		restTemplate.delete(fetchProductbaseurl);
-		return "Deleted";
+			InstanceInfo insinfo = eurekaClient.getNextServerFromEureka("zuul-gateway", false);
+			String baseurl = insinfo.getHomePageUrl();
+
+			String fetchProductbaseurl = baseurl + "api/order/removeOrder/" + id;
+			restTemplate.delete(fetchProductbaseurl);
+			return "Deleted";
+		}
+
+		else {
+			return "no order";
+		}
 
 	}
 
