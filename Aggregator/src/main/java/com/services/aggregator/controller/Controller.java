@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +27,18 @@ import com.services.aggregator.model.Product;
 @RestController
 @RequestMapping("/enduser")
 public class Controller {
+
+	@Value("${placeorder.productcheck}")
+	String noProductExits;
+
+	@Value("${placeorder.customercheck}")
+	String noCustomerExits;
+
+	@Value("${deleteorder.deleted}")
+	String deleted;
+
+	@Value("${deleteorder.notexits}")
+	String noOrder;
 
 	@Autowired
 	private EurekaClient eurekaClient;
@@ -164,12 +177,11 @@ public class Controller {
 
 		else if (productCheck == null) {
 
-			String result = "No product exits with this product id";
+			String result = noProductExits;
 			return new ResponseEntity<String>(result, HttpStatus.CREATED);
 
 		} else {
-			String result = "No Customer exits with this Customer id \r\n --Please become customer for any order--"
-					+ "\r\n Url : http://localhost:9090/api/aggregator/enduser/becomeCustomer";
+			String result = noCustomerExits;
 
 			return new ResponseEntity<String>(result, HttpStatus.CREATED);
 		}
@@ -210,7 +222,6 @@ public class Controller {
 
 		InstanceInfo insinfo = eurekaClient.getNextServerFromEureka("zuul-gateway", false);
 		String baseurl = insinfo.getHomePageUrl();
-
 		String fetchProductbaseurl = baseurl + "api/customer/updateonecustomer/" + custId;
 		String result = restTemplate.patchForObject(fetchProductbaseurl, customer, String.class);
 
@@ -237,11 +248,11 @@ public class Controller {
 
 			String fetchProductbaseurl = baseurl + "api/order/removeOrder/" + id;
 			restTemplate.delete(fetchProductbaseurl);
-			return "Deleted";
+			return deleted;
 		}
 
 		else {
-			return "no order";
+			return noOrder;
 		}
 
 	}
