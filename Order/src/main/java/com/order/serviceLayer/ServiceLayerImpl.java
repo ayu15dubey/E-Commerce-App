@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.client.RestTemplate;
 
 import com.netflix.appinfo.InstanceInfo;
@@ -16,7 +15,6 @@ import com.netflix.discovery.EurekaClient;
 import com.order.entity.CustAddress;
 import com.order.entity.Customer;
 import com.order.entity.OrderHeader;
-import com.order.entity.Product;
 import com.order.repo.OrderRepo;
 
 @Service
