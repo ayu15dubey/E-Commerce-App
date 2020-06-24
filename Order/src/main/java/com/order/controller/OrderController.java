@@ -25,21 +25,23 @@ public class OrderController {
 
 	@Autowired
 	private ServiceLayer serviceLayer;
-	Logger logger=LoggerFactory.getLogger(LoggingCodecSupport.class);
+	Logger logger = LoggerFactory.getLogger(LoggingCodecSupport.class);
 
 	/**
 	 * Accepts order data and Places the Order
+	 * 
 	 * @param orderHead
 	 * @return
 	 */
 	@PostMapping("/placeOrder")
 	ResponseEntity<String> orderPlaced(@RequestBody OrderHeader orderHead) {
-logger.info("orderplaced method is invoked");
+		logger.info("orderplaced method is invoked");
 		return new ResponseEntity<String>(serviceLayer.orderPlaced(orderHead), HttpStatus.CREATED);
 	}
 
 	/**
-	 * Updates the particular order with given address 
+	 * Updates the particular order with given address
+	 * 
 	 * @param address
 	 * @param orderId
 	 * @return
@@ -52,6 +54,7 @@ logger.info("orderplaced method is invoked");
 
 	/**
 	 * Fetches the order for given id
+	 * 
 	 * @param orderId
 	 * @return
 	 */
@@ -64,6 +67,7 @@ logger.info("orderplaced method is invoked");
 
 	/**
 	 * Fetches all Orders from DB
+	 * 
 	 * @return
 	 */
 	@GetMapping("/fetchAllOrder")
@@ -75,6 +79,7 @@ logger.info("orderplaced method is invoked");
 
 	/**
 	 * Removes the order for the given id
+	 * 
 	 * @param orderId
 	 * @return
 	 */

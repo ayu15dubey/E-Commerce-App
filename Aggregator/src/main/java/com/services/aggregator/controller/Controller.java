@@ -3,11 +3,15 @@ package com.services.aggregator.controller;
 import java.io.IOException;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.codec.LoggingCodecSupport;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -20,13 +24,14 @@ import org.springframework.web.client.RestTemplate;
 
 import com.netflix.appinfo.InstanceInfo;
 import com.netflix.discovery.EurekaClient;
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import com.services.aggregator.model.Customer;
 import com.services.aggregator.model.OrderHeader;
 import com.services.aggregator.model.Product;
 
 @RestController
 @RequestMapping("/enduser")
-public class Controller {
+public class Controller extends FallbackMethods {
 
 	@Value("${placeorder.productcheck}")
 	String noProductExits;
@@ -41,6 +46,9 @@ public class Controller {
 	String noOrder;
 
 	@Autowired
+	Environment env;
+
+	@Autowired
 	private EurekaClient eurekaClient;
 
 	@Autowired
@@ -48,6 +56,7 @@ public class Controller {
 
 	@Autowired
 	private Controller controller;
+	Logger logger = LoggerFactory.getLogger(LoggingCodecSupport.class);
 
 	Boolean hasCustomerBecome = false;
 
@@ -58,12 +67,16 @@ public class Controller {
 	 * @return
 	 */
 	@GetMapping("/searchProductbyid/{id}")
+	@HystrixCommand(fallbackMethod = "fallbackViewProductById")
 	public Product viewProductById(@PathVariable("id") Long id) {
+		logger.info("viewProductById method is invoked");
 		RestTemplate restTemplate = restTemplateBuilder.build();
+
+		String serverPort = env.getProperty("local.server.port");
+		System.out.println(serverPort);
 
 		InstanceInfo insinfo = eurekaClient.getNextServerFromEureka("zuul-gateway", false);
 		String baseurl = insinfo.getHomePageUrl();
-
 		String fetchProductbaseurl = baseurl + "api/product/getoneProduct/" + id;
 		Product product = restTemplate.getForObject(fetchProductbaseurl, Product.class);
 		return product;
@@ -78,14 +91,14 @@ public class Controller {
 	 * @throws ClassNotFoundException
 	 */
 	@GetMapping("/searchProductbyname/{name}")
+	@HystrixCommand(fallbackMethod = "fallbackViewProductsByName")
 	public List<Product> viewProductsByName(@PathVariable("name") String name)
 			throws IOException, ClassNotFoundException {
-
+		logger.info("viewProductsByName method is invoked");
 		RestTemplate restTemplate = restTemplateBuilder.build();
 
 		InstanceInfo insinfo = eurekaClient.getNextServerFromEureka("zuul-gateway", false);
 		String baseurl = insinfo.getHomePageUrl();
-
 		String fetchProductbaseurl = baseurl + "api/product/getproductbyname/" + name;
 		List<Product> product = restTemplate.getForObject(fetchProductbaseurl, List.class);
 
@@ -101,14 +114,15 @@ public class Controller {
 	 * @throws ClassNotFoundException
 	 */
 	@PostMapping("/becomeCustomer")
+	@HystrixCommand(fallbackMethod = "fallbackBecomeCustomer")
 	public ResponseEntity<Customer> becomeCustomer(@RequestBody Customer customer)
 			throws IOException, ClassNotFoundException {
 
+		logger.info("becomeCustomer method is invoked");
 		RestTemplate restTemplate = restTemplateBuilder.build();
 
 		InstanceInfo insinfo = eurekaClient.getNextServerFromEureka("zuul-gateway", false);
 		String baseurl = insinfo.getHomePageUrl();
-
 		String fetchProductbaseurl = baseurl + "api/customer/addcustomer";
 		ResponseEntity<Customer> customerObj = restTemplate.postForEntity(fetchProductbaseurl, customer,
 				Customer.class);
@@ -116,7 +130,6 @@ public class Controller {
 		if (customerObj.getStatusCode().is2xxSuccessful()) {
 			hasCustomerBecome = true;
 		}
-
 		return customerObj;
 	}
 
@@ -127,17 +140,16 @@ public class Controller {
 	 * @return
 	 */
 	@GetMapping("/viewmydetails/{custid}")
+	@HystrixCommand(fallbackMethod = "fallbackViewMyDetails")
 	public Customer viewMyDetails(@PathVariable("custid") Long CustId) {
 
+		logger.info("viewMyDetails method is invoked");
 		RestTemplate restTemplate = restTemplateBuilder.build();
 
 		InstanceInfo insinfo = eurekaClient.getNextServerFromEureka("zuul-gateway", false);
 		String baseurl = insinfo.getHomePageUrl();
-
 		String fetchProductbaseurl = baseurl + "api/customer/getonecustomer/" + CustId;
-
 		Customer customerObj = restTemplate.getForObject(fetchProductbaseurl, Customer.class);
-
 		return customerObj;
 
 	}
@@ -151,9 +163,11 @@ public class Controller {
 	 * @return
 	 */
 	@PostMapping("/placeOrder/{Productid}/{custid}/{quantity}")
+	@HystrixCommand(fallbackMethod = "fallbackPlaceOrder")
 	public ResponseEntity<String> placeOrder(@PathVariable("Productid") Long Productid,
 			@PathVariable("custid") Long custid, @PathVariable("quantity") int quantity) {
 
+		logger.info("placeOrder method is invoked");
 		Product productCheck = controller.viewProductById(Productid);
 		Customer customerCheck = controller.viewMyDetails(custid);
 
@@ -164,18 +178,12 @@ public class Controller {
 			order.setQuantity(quantity);
 
 			RestTemplate restTemplate = restTemplateBuilder.build();
-
 			InstanceInfo insinfo = eurekaClient.getNextServerFromEureka("zuul-gateway", false);
 			String baseurl = insinfo.getHomePageUrl();
-
 			String fetchProductbaseurl = baseurl + "api/order/placeOrder";
 			ResponseEntity<String> result = restTemplate.postForEntity(fetchProductbaseurl, order, String.class);
-
 			return result;
-
-		}
-
-		else if (productCheck == null) {
+		} else if (productCheck == null) {
 
 			String result = noProductExits;
 			return new ResponseEntity<String>(result, HttpStatus.CREATED);
@@ -195,8 +203,10 @@ public class Controller {
 	 * @return
 	 */
 	@GetMapping("/getmyorder/{orderid}")
+	@HystrixCommand(fallbackMethod = "fallbackGetMyOrder")
 	public OrderHeader getMyOrder(@PathVariable("orderid") int id) {
 
+		logger.info("getMyOrder method is invoked");
 		RestTemplate restTemplate = restTemplateBuilder.build();
 
 		InstanceInfo insinfo = eurekaClient.getNextServerFromEureka("zuul-gateway", false);
@@ -217,8 +227,11 @@ public class Controller {
 	 * @return
 	 */
 	@PatchMapping("/updatemydetails/{custid}")
+	@HystrixCommand(fallbackMethod = "fallbackUpdateMyDetails")
 	public String updateMyDetails(@PathVariable("custid") Long custId, @RequestBody Customer customer) {
+
 		RestTemplate restTemplate = restTemplateBuilder.build();
+		logger.info("updateMyDetails method is invoked");
 
 		InstanceInfo insinfo = eurekaClient.getNextServerFromEureka("zuul-gateway", false);
 		String baseurl = insinfo.getHomePageUrl();
@@ -236,8 +249,10 @@ public class Controller {
 	 * @return
 	 */
 	@DeleteMapping("/deleteorder/{id}")
+	@HystrixCommand(fallbackMethod = "fallbackDeleteOrder")
 	public String deleteOrder(@PathVariable("id") int id) {
 
+		logger.info("deleteOrder method is invoked");
 		OrderHeader checkOrder = controller.getMyOrder(id);
 
 		if (checkOrder != null) {
@@ -254,7 +269,5 @@ public class Controller {
 		else {
 			return noOrder;
 		}
-
 	}
-
 }
