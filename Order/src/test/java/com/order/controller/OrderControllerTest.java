@@ -78,7 +78,7 @@ public class OrderControllerTest {
 	public void testOrderPlaced() throws JsonProcessingException, Exception {
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
-		System.out.println(order.getCustomer().getCustName());
+		
 
 		Mockito.when(serviceLayer.orderPlaced((OrderHeader) org.mockito.Matchers.any(OrderHeader.class)))
 				.thenReturn("orderPlaced");
