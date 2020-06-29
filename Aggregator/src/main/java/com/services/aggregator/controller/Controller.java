@@ -71,10 +71,6 @@ public class Controller extends FallbackMethods {
 	public Product viewProductById(@PathVariable("id") Long id) {
 		logger.info("viewProductById method is invoked");
 		RestTemplate restTemplate = restTemplateBuilder.build();
-
-		String serverPort = env.getProperty("local.server.port");
-		System.out.println(serverPort);
-
 		InstanceInfo insinfo = eurekaClient.getNextServerFromEureka("zuul-gateway", false);
 		String baseurl = insinfo.getHomePageUrl();
 		String fetchProductbaseurl = baseurl + "api/product/getoneProduct/" + id;
