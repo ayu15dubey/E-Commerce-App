@@ -20,7 +20,7 @@ E-commerce application using Microservices Architecture
 
 # Have implemented all the microservices tools like Zuul API gateway, Ribbon(load balancing), hystrix(circuit breaker, Eureka server, config server/client and etc.
 
-## Included docker file which will make the docker image and can be use to containerize services is independent of environment.
+## Included docker file which will make the docker image and can be use to containerize services which is independent of environment.
 
 Please have a look and can mail me at ayu16dubey@gmail.com for any queries.
 
