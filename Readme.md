@@ -22,7 +22,7 @@ E-commerce application using Microservices Architecture
 
 ## Included docker file which will make the docker image and can be use to containerize services which is independent of environment.
 
-Please have a look and can mail me at ayu16dubey@gmail.com for any queries.
+For any queries can mail me at ayu16dubey@gmail.com for any queries.
 
 Thankyou.
 
