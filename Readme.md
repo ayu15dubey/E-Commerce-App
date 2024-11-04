@@ -1,4 +1,4 @@
-E-commerce application using Microservices Architecture
+E-commerce application using Microservices Architecture with Spring boot and JAVA
 
 -> Here we have developed various microservices application and every individual service has it's own particularity.
 ->The four services are as follows:
